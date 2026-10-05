@@ -1,0 +1,176 @@
+[TXT]
+RegPai = BLOCO_J
+Reg = J150
+Display = J150 - DEMONSTRATIVO DE RESULTADO
+SubPasta = sim
+Caminho = SPED\SPED_CONTABIL\BLOCO_J\MOV\J005_DEMONSTRACOES_CONTABEIS\
+Salvar = SIM
+
+[SQL]
+1   = SELECT 'J150' REG, 1 SEQ, 
+2   =  CONTA_DRE.CODIGO COD_AGL, 
+3   = --  CASE WHEN MAX(NIVEL_AGL) = 4 THEN 'D' ELSE 'T' END IND_COD_AGL, 
+4   =  MAX(CONTA_DRE.TRL) IND_COD_AGL,
+5   =  MAX(CONTA_DRE.NIVEL) NIVEL, 
+6   =  MAX(CONTA_DRE.NIVEL_ANT) COD_AG_SUP, 
+7   =  MAX(CONTA_DRE.NOME) DESC_COD_AGL,  
+8   =  ROUND(SUM(MV.TOTALANT_CTB), 2) VL_CTA_INI, CASE WHEN SUM(MV.TOTALANT_CTB) > 0 THEN 'C'  ELSE 'D' END IND_DC_CTA_INI, ROUND(SUM(MV.TOTAL_CTB), 2) VL_CTA_FIN, 
+9   =  CASE WHEN SUM(MV.TOTAL_CTB) > 0 THEN 'C'  ELSE 'D' END IND_DC_CTA_FIN, 
+10  =  CASE WHEN SUM(MV.TOTAL_CTB) > 0 THEN 'R'  ELSE 'D' END IND_GRP_DRE,  '' NOTA_EXP_REF 
+11  = FROM
+12  = (
+13  =    SELECT
+14  =         CTB_MOV.COD_CTB,
+15  =         CONTAP.NOM_CTA,
+16  =         NIVEL.VALOR NIVEL_AGL,
+17  =         CASE
+18  =             WHEN NIVEL.VALOR = 5 THEN CONTAP.CODCTB_CTA
+19  =             WHEN NIVEL.VALOR = 4 THEN (
+20  =                 SELECT CODCTB_CTA
+21  =                 FROM CTB_CONTA
+22  =                 WHERE CODCTB_CTA = CONTAP.G4_CTA
+23  =             )
+24  =             WHEN NIVEL.VALOR = 3 THEN (
+25  =                 SELECT CODCTB_CTA
+26  =                 FROM CTB_CONTA
+27  =                 WHERE CODCTB_CTA = CONTAP.G3_CTA
+28  =             )
+29  =             WHEN NIVEL.VALOR = 2 THEN (
+30  =                 SELECT CODCTB_CTA
+31  =                 FROM CTB_CONTA
+32  =                 WHERE CODCTB_CTA = CONTAP.G2_CTA
+33  =             )
+34  =             WHEN NIVEL.VALOR = 1 THEN (
+35  =                 SELECT CODCTB_CTA
+36  =                 FROM CTB_CONTA
+37  =                 WHERE CODCTB_CTA = CONTAP.G1_CTA
+38  =             )
+39  =             ELSE ''
+40  =         END CONTA,
+41  = 
+42  =         CASE
+43  =             WHEN DATEADD(
+44  =                     3 MONTH TO CTB_MOV.DATA_CTB
+49  =                  ) >= ':DT_INI_FORMATADA:'
+50  =              AND DATEADD(
+51  =                     3 MONTH TO CTB_MOV.DATA_CTB
+56  =                  ) <= ':DT_FIN_FORMATADA:'
+57  =             THEN CTB_MOV.TOTAL_CTB
+58  =             ELSE 0.0
+59  =         END TOTALANT_CTB,
+60  = 
+61  =         CASE
+62  =             WHEN CTB_MOV.DATA_CTB >= ':DT_INI_FORMATADA:'
+63  =             THEN CTB_MOV.TOTAL_CTB
+64  =             ELSE 0.0
+65  =         END TOTAL_CTB,
+66  = 
+67  =         NIVEL.VALOR
+68  =     FROM
+69  =     (
+70  =         SELECT 5 VALOR FROM RDB$DATABASE
+71  =         UNION ALL SELECT 4 VALOR FROM RDB$DATABASE
+72  =         UNION ALL SELECT 3 VALOR FROM RDB$DATABASE
+73  =         UNION ALL SELECT 2 VALOR FROM RDB$DATABASE
+74  =         UNION ALL SELECT 1 VALOR FROM RDB$DATABASE
+75  =     ) NIVEL,
+76  =     CTB_MOV
+77  =     INNER JOIN ESTAB
+78  =         ON ESTAB.COD_ESTAB = CTB_MOV.COD_ESTAB
+79  =     INNER JOIN CTB_CONTA CONTAP
+80  =         ON CONTAP.CODCTB_CTA = CTB_MOV.C_CODCTB_CTA
+81  =        AND COALESCE(CONTAP.GRUPO_CTA, 1) = 4
+82  =     WHERE ESTAB.CTRLCTB_ESTB = :CTRLCTB_ESTB:
+83  =       AND DATEADD(
+84  =             3 MONTH TO CTB_MOV.DATA_CTB
+89  =           ) >= ':DT_INI_FORMATADA:'
+90  =       AND CTB_MOV.DATA_CTB <= ':DT_FIN_FORMATADA:'
+91  =       AND COALESCE(CTB_MOV.INDLAN_CTB, 'N') = 'N'
+92  = 
+93  =     UNION ALL
+94  = 
+95  =     SELECT
+96  =         CTB_MOV.COD_CTB,
+97  =         CONTAP.NOM_CTA,
+98  =         NIVEL.VALOR NIVEL_AGL,
+99  =         CASE
+100 =             WHEN NIVEL.VALOR = 5 THEN CONTAP.CODCTB_CTA
+101 =             WHEN NIVEL.VALOR = 4 THEN (
+102 =                 SELECT CODCTB_CTA
+103 =                 FROM CTB_CONTA
+104 =                 WHERE CODCTB_CTA = CONTAP.G4_CTA
+105 =             )
+106 =             WHEN NIVEL.VALOR = 3 THEN (
+107 =                 SELECT CODCTB_CTA
+108 =                 FROM CTB_CONTA
+109 =                 WHERE CODCTB_CTA = CONTAP.G3_CTA
+110 =             )
+111 =             WHEN NIVEL.VALOR = 2 THEN (
+112 =                 SELECT CODCTB_CTA
+113 =                 FROM CTB_CONTA
+114 =                 WHERE CODCTB_CTA = CONTAP.G2_CTA
+115 =             )
+116 =             WHEN NIVEL.VALOR = 1 THEN (
+117 =                 SELECT CODCTB_CTA
+118 =                 FROM CTB_CONTA
+119 =                 WHERE CODCTB_CTA = CONTAP.G1_CTA
+120 =             )
+121 =             ELSE ''
+122 =         END CONTA,
+123 = 
+124 =         CASE
+125 =             WHEN DATEADD(
+126 =                     3 MONTH TO CTB_MOV.DATA_CTB
+131 =                  ) >= ':DT_INI_FORMATADA:'
+132 =              AND DATEADD(
+133 =                     3 MONTH TO CTB_MOV.DATA_CTB
+138 =                  ) <= ':DT_FIN_FORMATADA:'
+139 =             THEN CTB_MOV.TOTAL_CTB
+140 =             ELSE 0.0
+141 =         END * (-1) TOTALANT_CTB,
+142 = 
+143 =         CASE
+144 =             WHEN CTB_MOV.DATA_CTB >= ':DT_INI_FORMATADA:'
+145 =             THEN CTB_MOV.TOTAL_CTB
+146 =             ELSE 0.0
+147 =         END * (-1) TOTAL_CTB,
+148 = 
+149 =         NIVEL.VALOR
+150 =     FROM
+151 =     (
+152 =         SELECT 6 VALOR FROM RDB$DATABASE -- LUCRO LIQUIDO
+153 =         UNION ALL SELECT 5 VALOR FROM RDB$DATABASE
+154 =         UNION ALL SELECT 4 VALOR FROM RDB$DATABASE
+155 =         UNION ALL SELECT 3 VALOR FROM RDB$DATABASE
+156 =         UNION ALL SELECT 2 VALOR FROM RDB$DATABASE
+157 =         UNION ALL SELECT 1 VALOR FROM RDB$DATABASE
+158 =     ) NIVEL,
+159 =     CTB_MOV
+160 =     INNER JOIN ESTAB
+161 =         ON ESTAB.COD_ESTAB = CTB_MOV.COD_ESTAB
+162 =     INNER JOIN CTB_CONTA CONTAP
+163 =         ON CONTAP.CODCTB_CTA = CTB_MOV.D_CODCTB_CTA
+164 =        AND COALESCE(CONTAP.GRUPO_CTA, 1) = 4
+165 =     WHERE ESTAB.CTRLCTB_ESTB = :CTRLCTB_ESTB:
+166 =       AND DATEADD(
+167 =             3 MONTH TO CTB_MOV.DATA_CTB
+172 =           ) >= ':DT_INI_FORMATADA:'
+173 =       AND CTB_MOV.DATA_CTB <= ':DT_FIN_FORMATADA:'
+174 =       AND COALESCE(CTB_MOV.INDLAN_CTB, 'N') = 'N'
+175 = ) MV
+176 = INNER JOIN 
+177 = CTB_DRE CONTA_DRE ON (CONTA_DRE.CODCTB_CTA = MV.CONTA AND CONTA_DRE.NIVEL <= 10)
+178 = GROUP BY REG, COD_AGL
+
+
+[DISPLAYFORMAT]
+VL_CTA_INI = 0.00;0.00;0.00
+VL_CTA_FIN = 0.00;0.00;0.00
+SEQ = 00000
+
+[ROTULO]
+
+[FIELDSLENGTH]
+CONTABIL = 0
+
+[ChildNodes]
